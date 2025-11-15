@@ -21,7 +21,7 @@ const TimelineCard = ({ event }) => {
   };
 
   const formatDate = (dateString) => {
-    return dateString; // Date is already formatted in the data
+    return dateString; 
   };
 
   return (
