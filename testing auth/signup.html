@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign Up - LittleLog</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 400px;
+                margin: 50px auto;
+                padding: 20px;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            input {
+                padding: 10px;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            button, input[type="submit"] {
+                padding: 10px;
+                font-size: 14px;
+                cursor: pointer;
+                border: none;
+                border-radius: 4px;
+                background-color: #28a745;
+                color: white;
+            }
+            button:hover, input[type="submit"]:hover {
+                background-color: #218838;
+            }
+            #googleSignIn {
+                background-color: #4285f4;
+            }
+            #googleSignIn:hover {
+                background-color: #357abd;
+            }
+            .login-link {
+                text-align: center;
+                margin-top: 20px;
+            }
+            hr {
+                margin: 30px 0;
+            }
+            .password-hint {
+                font-size: 12px;
+                color: #666;
+                margin-top: -10px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Create Your Account</h2>
+        <form id="signupForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required minlength="6">
+            <p class="password-hint">Password must be at least 6 characters</p>
+
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+
+            <input type="submit" value="Sign Up">
+        </form>
+
+        <hr>
+        <h3>Or sign up with:</h3>
+        <button id="googleSignIn">Sign up with Google</button>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="login.html">Login here</a></p>
+        </div>
+
+        <script type="module" src="auth.js"></script>
+    </body>
+</html>

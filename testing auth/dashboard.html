@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard - LittleLog</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 800px;
+                margin: 50px auto;
+                padding: 20px;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #007bff;
+            }
+            .user-info {
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            }
+            .user-info h3 {
+                margin-top: 0;
+            }
+            .user-detail {
+                margin: 10px 0;
+                padding: 10px;
+                background-color: white;
+                border-radius: 4px;
+            }
+            .user-detail strong {
+                display: inline-block;
+                width: 150px;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+                cursor: pointer;
+                border: none;
+                border-radius: 4px;
+                background-color: #dc3545;
+                color: white;
+            }
+            button:hover {
+                background-color: #c82333;
+            }
+            .loading {
+                text-align: center;
+                padding: 50px;
+                font-size: 18px;
+                color: #666;
+            }
+            .hidden {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="loading" class="loading">Loading...</div>
+
+        <div id="content" class="hidden">
+            <div class="header">
+                <h1>Welcome to LittleLog Dashboard</h1>
+                <button id="logoutBtn">Logout</button>
+            </div>
+
+            <div id="profileIncomplete" class="user-info hidden" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                <h3>⚠️ Complete Your Profile</h3>
+                <p>Your profile is incomplete. Please complete it to get the most out of LittleLog.</p>
+                <a href="profile-setup.html" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px;">Complete Profile Now</a>
+            </div>
+
+            <div id="accountInfo" class="user-info">
+                <h3>Your Account Information</h3>
+                <div class="user-detail">
+                    <strong>Email:</strong>
+                    <span id="userEmail">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>User ID:</strong>
+                    <span id="userId">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Account Created:</strong>
+                    <span id="userCreated">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Last Sign In:</strong>
+                    <span id="userLastSignIn">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Email Verified:</strong>
+                    <span id="emailVerified">-</span>
+                </div>
+            </div>
+
+            <div id="profileInfo" class="user-info hidden">
+                <h3>Your Profile</h3>
+                <div class="user-detail">
+                    <strong>Name:</strong>
+                    <span id="fullName">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Birthday:</strong>
+                    <span id="birthday">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Age:</strong>
+                    <span id="age">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Gender:</strong>
+                    <span id="gender">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Location:</strong>
+                    <span id="location">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Preferred Language:</strong>
+                    <span id="preferredLanguage">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Number of Children:</strong>
+                    <span id="numberOfChildren">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>First Time Parent:</strong>
+                    <span id="firstTimeParent">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Allergies:</strong>
+                    <span id="allergies">-</span>
+                </div>
+                <div class="user-detail">
+                    <strong>Medications:</strong>
+                    <span id="medications">-</span>
+                </div>
+                <a href="profile-setup.html" style="display: inline-block; padding: 8px 16px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-top: 15px; font-size: 14px;">Edit Profile</a>
+            </div>
+        </div>
+
+        <script type="module" src="dashboard.js"></script>
+    </body>
+</html>

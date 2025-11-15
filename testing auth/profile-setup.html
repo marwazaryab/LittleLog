@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Complete Your Profile - LittleLog</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            h2 {
+                color: #333;
+                margin-top: 0;
+            }
+            .intro-text {
+                color: #666;
+                margin-bottom: 25px;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+            label {
+                font-weight: 600;
+                color: #333;
+                font-size: 14px;
+            }
+            input, select, textarea {
+                padding: 10px;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-family: Arial, sans-serif;
+            }
+            textarea {
+                resize: vertical;
+                min-height: 60px;
+            }
+            .checkbox-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .checkbox-group input[type="checkbox"] {
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+            }
+            .checkbox-group label {
+                margin: 0;
+                cursor: pointer;
+            }
+            .tags-input {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                min-height: 42px;
+                align-items: center;
+            }
+            .tag {
+                background-color: #007bff;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 16px;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .tag .remove {
+                cursor: pointer;
+                font-weight: bold;
+            }
+            .tags-input input {
+                border: none;
+                outline: none;
+                flex: 1;
+                min-width: 120px;
+                padding: 5px;
+            }
+            .hint {
+                font-size: 12px;
+                color: #666;
+                font-style: italic;
+            }
+            button[type="submit"] {
+                padding: 12px;
+                font-size: 16px;
+                cursor: pointer;
+                border: none;
+                border-radius: 4px;
+                background-color: #28a745;
+                color: white;
+                font-weight: 600;
+                margin-top: 10px;
+            }
+            button[type="submit"]:hover {
+                background-color: #218838;
+            }
+            .skip-link {
+                text-align: center;
+                margin-top: 15px;
+            }
+            .skip-link a {
+                color: #666;
+                text-decoration: none;
+            }
+            .skip-link a:hover {
+                text-decoration: underline;
+            }
+            .error-message {
+                background-color: #f8d7da;
+                color: #721c24;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 20px;
+                border: 1px solid #f5c6cb;
+                display: none;
+            }
+            .error-message.show {
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Complete Your Profile</h2>
+            <p class="intro-text">Help us personalize your experience by completing your profile information.</p>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="birthday">Birthday *</label>
+                    <input type="date" id="birthday" name="birthday" required>
+                    <span class="hint">Age will be calculated automatically</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender">
+                        <option value="">Prefer not to say</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="non-binary">Non-binary</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" placeholder="City, Province/State">
+                </div>
+
+                <div class="form-group">
+                    <label for="preferredLanguage">Preferred Language</label>
+                    <select id="preferredLanguage" name="preferredLanguage">
+                        <option value="English">English</option>
+                        <option value="French">French</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="Mandarin">Mandarin</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="numberOfChildren">Number of Children</label>
+                    <input type="number" id="numberOfChildren" name="numberOfChildren" min="0" value="0">
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="firstTimeParent" name="firstTimeParent">
+                    <label for="firstTimeParent">I am a first-time parent</label>
+                </div>
+
+                <div class="form-group">
+                    <label>Allergies</label>
+                    <div class="tags-input" id="allergiesContainer">
+                        <input type="text" id="allergiesInput" placeholder="Type and press Enter">
+                    </div>
+                    <span class="hint">Press Enter after each allergy to add it</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Medications</label>
+                    <div class="tags-input" id="medicationsContainer">
+                        <input type="text" id="medicationsInput" placeholder="Type and press Enter">
+                    </div>
+                    <span class="hint">Press Enter after each medication to add it</span>
+                </div>
+
+                <button type="submit">Complete Profile</button>
+            </form>
+
+            <div class="skip-link">
+                <a href="dashboard.html">Skip for now</a>
+            </div>
+        </div>
+
+        <script type="module" src="profile-setup.js"></script>
+    </body>
+</html>
