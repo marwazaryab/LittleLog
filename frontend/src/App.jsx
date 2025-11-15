@@ -5,19 +5,24 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
+import TimelinePage from './pages/TimelinePage';
+import { TimelineProvider } from './context/TimelineContext';
+
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <>
       <BrowserRouter>
-        <div className="app-container">
-          <Sidebar />
-          <Routes>
-            <Route path = "/" element = {<Home/>} />
-          </Routes>
-        </div>
-      
+        <TimelineProvider>
+          <div className="app-container">
+            <Sidebar />
+            <Routes>
+              <Route path = "/" element = {<Home/>} />
+              <Route path = "/timeline" element = {<TimelinePage/>} />
+            </Routes>
+          </div>
+        </TimelineProvider>
       </BrowserRouter>
     </>
   )
