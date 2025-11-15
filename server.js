@@ -4,6 +4,18 @@ import fetch from 'node-fetch';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+import multer from 'multer';
+import fs from 'fs';
+import FormData from 'form-data';
+
+// Load environment variables
+const envResult = dotenv.config();
+if (envResult.error) {
+  console.warn('Warning: .env file not found or error loading it:', envResult.error.message);
+} else {
+  console.log('Environment variables loaded from .env file');
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +26,31 @@ const PORT = 3001;
 // middleware
 app.use(cors());
 app.use(express.json());
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for file uploads
+const upload = multer({ 
+  dest: uploadsDir,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
+// OpenAI Whisper API configuration
+const OPENAI_API_KEY = process.env.API_KEY_STT?.trim();
+const OPENAI_WHISPER_URL = 'https://api.openai.com/v1/audio/transcriptions';
+
+if (!OPENAI_API_KEY) {
+  console.warn('⚠️  Warning: API_KEY_STT not found in .env file');
+} else {
+  console.log('✅ OpenAI API key loaded');
+  console.log('Key length:', OPENAI_API_KEY.length);
+  console.log('Key starts with:', OPENAI_API_KEY.substring(0, 7) + '...');
+  console.log('Key ends with:', '...' + OPENAI_API_KEY.substring(OPENAI_API_KEY.length - 4));
+}
 
 // ollama API endpoint
 const OLLAMA_API = 'http://localhost:11434/api/chat';
@@ -118,10 +155,110 @@ app.get('/api/models', async (req, res) => {
   }
 });
 
+// Speech-to-Text endpoint using OpenAI Whisper
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No audio file provided' });
+    }
+
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured',
+        hint: 'Make sure API_KEY_STT is set in your .env file'
+      });
+    }
+
+    console.log('📤 Sending audio to OpenAI Whisper API...');
+    console.log('File:', req.file.filename);
+    console.log('Size:', (req.file.size / 1024).toFixed(2), 'KB');
+    console.log('Using API key:', OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 10) + '...' : 'NOT SET');
+
+    // Read the audio file
+    const audioFile = fs.createReadStream(req.file.path);
+    
+    // Create FormData for OpenAI API
+    const formData = new FormData();
+    formData.append('file', audioFile, {
+      filename: req.file.originalname || 'audio.wav',
+      contentType: 'audio/wav'
+    });
+    formData.append('model', 'whisper-1');
+    // Note: language parameter is optional - removed for auto-detection
+
+    // Get form data headers
+    const headers = {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      ...formData.getHeaders()
+    };
+    
+    console.log('Request headers:', {
+      'Authorization': `Bearer ${OPENAI_API_KEY.substring(0, 10)}...`,
+      'Content-Type': headers['content-type']
+    });
+
+    // Send to OpenAI Whisper API
+    const openaiResponse = await fetch(OPENAI_WHISPER_URL, {
+      method: 'POST',
+      headers: headers,
+      body: formData
+    });
+
+    const data = await openaiResponse.json();
+
+    if (!openaiResponse.ok) {
+      // Clean up uploaded file before throwing error
+      fs.unlinkSync(req.file.path);
+      
+      console.error('OpenAI API error:', data);
+      throw new Error(data.error?.message || data.error || `OpenAI API returned ${openaiResponse.status}`);
+    }
+
+    // Clean up uploaded file after successful response
+    fs.unlinkSync(req.file.path);
+    console.log('✅ Transcription successful');
+    
+    if (!data.text) {
+      return res.status(400).json({ error: 'No transcription returned from API' });
+    }
+
+    res.json({ transcription: data.text });
+  } catch (error) {
+    console.error('Speech-to-Text error:', error);
+    console.error('Error message:', error.message);
+    if (error.stack) {
+      console.error('Error stack:', error.stack);
+    }
+    
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Error deleting file:', e);
+      }
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to transcribe audio', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 const buildPath = path.join(__dirname, 'frontend', 'dist');
 app.use(express.static(buildPath));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(buildPath, 'index.html'));
+
+// Serve index.html for all non-API routes (SPA fallback)
+// This runs after static files, so it only catches routes that don't match static files
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(buildPath, 'index.html'), (err) => {
+      if (err) next(err);
+    });
+  } else {
+    res.status(404).json({ error: 'API route not found' });
+  }
 });
 
 // start server 

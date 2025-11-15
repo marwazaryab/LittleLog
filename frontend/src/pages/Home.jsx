@@ -12,6 +12,10 @@ const Home = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   const [showTimelineNotification, setShowTimelineNotification] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const chatWindowRef = useRef(null);
   const { addEvent } = useTimeline();
 
@@ -40,12 +44,12 @@ const Home = () => {
   };
 
   // function to send a message
-  const sendMessage = async () => {
-    if (input.trim() === '') return;
+  const sendMessage = async (messageText = null) => {
+    const userMessage = (messageText || input.trim());
+    if (userMessage === '') return;
 
-    const userMessage = input.trim();
-    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]); // previous messages
-    setInput('');
+    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
+    if (!messageText) setInput('');
     setIsTyping(true);
     setError(null);
 
@@ -93,6 +97,132 @@ const Home = () => {
     } finally {
       setIsTyping(false);
     }
+  };
+
+  // Start audio recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await transcribeAudio(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Error starting recording:', err);
+      setError('Failed to access microphone. Please check permissions.');
+    }
+  };
+
+  // Stop audio recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // Convert audio blob to WAV and transcribe
+  const transcribeAudio = async (audioBlob) => {
+    setIsTranscribing(true);
+    setError(null);
+
+    try {
+      // Convert to WAV format
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      // Convert to WAV
+      const wavBlob = audioBufferToWav(audioBuffer);
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('audio', wavBlob, 'recording.wav');
+
+      const response = await fetch('http://localhost:3001/api/transcribe', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Transcription API error:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to transcribe audio');
+      }
+
+      const data = await response.json();
+      
+      if (data.transcription) {
+        // Send transcribed text to chat
+        await sendMessage(data.transcription);
+      } else {
+        setError('No speech detected in recording.');
+      }
+    } catch (err) {
+      console.error('Transcription error:', err);
+      setError(err.message || 'Failed to transcribe audio. Please try again.');
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  // Convert AudioBuffer to WAV Blob
+  const audioBufferToWav = (buffer) => {
+    const length = buffer.length;
+    const numberOfChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2);
+    const view = new DataView(arrayBuffer);
+    
+    // WAV header
+    const writeString = (offset, string) => {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+    
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + length * numberOfChannels * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numberOfChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numberOfChannels * 2, true);
+    view.setUint16(32, numberOfChannels * 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, length * numberOfChannels * 2, true);
+    
+    // Convert audio data
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+      for (let channel = 0; channel < numberOfChannels; channel++) {
+        const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        offset += 2;
+      }
+    }
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
   };
 
   // trash to delete the conversation
@@ -175,17 +305,41 @@ const Home = () => {
         </button>
         
         <div className="chat-input">
+          <button
+            className={`record-btn ${isRecording ? 'recording' : ''}`}
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={!isConnected || isTyping || isTranscribing}
+            title={isRecording ? 'Stop recording' : 'Start recording'}
+          >
+            {isTranscribing ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spinning">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+            ) : isRecording ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            )}
+          </button>
           <input
             type="text"
             placeholder="Ask about feeding, sleeping, development..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-            disabled={!isConnected || isTyping}
+            disabled={!isConnected || isTyping || isTranscribing}
           />
           <button 
-            onClick={sendMessage} 
-            disabled={!input.trim() || !isConnected || isTyping}
+            onClick={() => sendMessage()} 
+            disabled={!input.trim() || !isConnected || isTyping || isTranscribing}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
