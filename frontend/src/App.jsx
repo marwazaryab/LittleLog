@@ -4,6 +4,7 @@ import { TimelineProvider } from './context/TimelineContext';
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import TimelinePage from './pages/TimelinePage';
+import Profile from './pages/Profile';
 import './App.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/timeline" element={<TimelinePage />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </div>
         </div>

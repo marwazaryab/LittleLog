@@ -8,7 +8,7 @@ export const TimelineProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
 
   const addEvent = (event) => {
-    setEvents((prev) => [...prev, event].sort((a, b) => new Date(a.date) - new Date(b.date)));
+    setEvents((prev) => [...prev, event].sort((a, b) => new Date(b.date) - new Date(a.date)));
   };
 
   const updateEvent = (id, updatedEvent) => {

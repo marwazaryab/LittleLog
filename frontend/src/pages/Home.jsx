@@ -4,7 +4,7 @@ import '../styles/Home.css';
 
 const Home = () => {
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hi! I am BabyCheck AI. Ask me anything about your baby! I can also help you track important health events and milestones.' }
+    { sender: 'bot', text: 'Hi! I\'m here to help you track your child\'s health. Tell me about any symptoms, behaviors, or concerns you\'ve noticed, and I\'ll help you document them.' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -73,6 +73,8 @@ const Home = () => {
 
       const data = await response.json();
       
+      console.log('📦 Received from server:', data);
+      
       setMessages(prev => [
         ...prev,
         { sender: 'bot', text: data.response }
@@ -80,9 +82,12 @@ const Home = () => {
 
       // if there's a timeline event, add it to the timeline
       if (data.timelineEvent) {
+        console.log('✅ Adding timeline event:', data.timelineEvent);
         addEvent(data.timelineEvent);
         setShowTimelineNotification(true);
         setTimeout(() => setShowTimelineNotification(false), 5000);
+      } else {
+        console.log('⚠️  No timeline event in response');
       }
     } catch (err) {
       console.error('Error:', err);
@@ -242,8 +247,8 @@ const Home = () => {
   return (
     <div className="home-container">
       <div className="header-section">
-        <h1 className="home-title">BabyCheck AI</h1>
-        <p className="home-subtitle">Your trusted companion for baby care</p>
+        <h1 className="home-title">ChildClickCare</h1>
+        <p className="home-subtitle">Keeping tabs on your child's health</p>
         <div className="connection-status">
           <span className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`}></span>
           <span className="status-text">
@@ -331,7 +336,7 @@ const Home = () => {
           </button>
           <input
             type="text"
-            placeholder="Ask about feeding, sleeping, development..."
+            placeholder="Describe symptoms, behaviors, or concerns..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}

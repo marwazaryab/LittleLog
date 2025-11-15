@@ -58,23 +58,36 @@ const OLLAMA_API = 'http://localhost:11434/api/chat';
 // convo history
 const conversationHistories = new Map();
 
-// prompt to ollmama
-const SYSTEM_PROMPT = `
-You are BabyCheck AI. When a user messages you about their baby's health, milestones, or symptoms,
-always generate a timeline event if applicable. The timeline event must be in the following JSON format:
+// prompt to ollama
+const SYSTEM_PROMPT = `You are ChildClickCare AI. For EVERY health-related message, you MUST output TIMELINE_EVENT first.
 
-TIMELINE_EVENT: {
-  "id": "<unique-id>",
-  "title": "<short title of event>",
-  "description": "<detailed description>",
-  "date": "<YYYY-MM-DD HH:mm>",
-  "tags": ["tag1","tag2"],
-  "severity": "low|medium|high"
-}
+MANDATORY FORMAT (use EXACTLY this):
+TIMELINE_EVENT: {"title":"Brief Title","description":"What user reported with any details available","tags":["tag1","tag2"],"severity":"low"}
 
-Only include TIMELINE_EVENT if the message relates to the baby's health or milestones.
-Otherwise, just respond normally.
-`;
+Your friendly response here.
+
+RULES:
+1. Create TIMELINE_EVENT immediately with whatever info you have - do NOT ask for more details first
+2. If user says "fever" - create event for fever even if temp unknown
+3. If user says "allergic reaction" - create event immediately, then ask follow-up questions
+4. NEVER say you will create an event - JUST CREATE IT using the exact JSON format above
+
+SEVERITY:
+- "low": mild symptoms, normal milestones
+- "medium": moderate concerns, persistent issues
+- "high": serious, needs immediate medical attention
+
+EXAMPLE - User: "allergic reaction"
+TIMELINE_EVENT: {"title":"Possible Allergic Reaction","description":"Parent reported possible allergic reaction. Awaiting more details on symptoms and trigger.","tags":["Allergic Reaction","Emergency"],"severity":"high"}
+
+I understand you're concerned about a possible allergic reaction. Please tell me: What did your child eat or come in contact with? Are there symptoms like hives, swelling, or breathing difficulty? If severe, call 911 immediately.
+
+EXAMPLE - User: "baby has fever"
+TIMELINE_EVENT: {"title":"Fever Reported","description":"Parent reported fever. Temperature and other symptoms to be confirmed.","tags":["Fever","Temperature"],"severity":"medium"}
+
+I'm here to help with your baby's fever. What temperature did you measure? How is your baby behaving - are they eating and playing normally?
+
+DO NOT TALK ABOUT creating events - JUST CREATE THEM using the exact format.`;
 
 
 // chat endpoint
@@ -102,19 +115,65 @@ app.post('/api/chat', async (req, res) => {
     const data = await ollamaResponse.json();
     const aiMessage = data.message.content;
 
-    // extract timeline event
+    console.log('🤖 AI Response (full):', aiMessage);
+    console.log('═'.repeat(80));
+
+    // extract timeline event - try multiple patterns
     let timelineEvent = null;
     let cleanedResponse = aiMessage;
-    const timelineMatch = aiMessage.match(/TIMELINE_EVENT:\s*(\{[\s\S]*?\})/);
-    if (timelineMatch) {
+    
+    // Try to find TIMELINE_EVENT pattern (case insensitive)
+    let timelineMatch = aiMessage.match(/TIMELINE_EVENT:\s*(\{[\s\S]*?\})/i);
+    
+    // If not found, try to find any JSON that looks like a timeline event
+    if (!timelineMatch) {
+      console.log('⚠️  No TIMELINE_EVENT: prefix found, searching for JSON object...');
+      const jsonMatches = aiMessage.match(/\{[\s\S]*?"title"[\s\S]*?"description"[\s\S]*?\}/g);
+      if (jsonMatches && jsonMatches.length > 0) {
+        console.log('📋 Found potential timeline JSON without prefix');
+        timelineMatch = [null, jsonMatches[jsonMatches.length - 1]]; // Use last match
+      }
+    } else {
+      console.log('📋 Found TIMELINE_EVENT with prefix');
+    }
+    
+    if (timelineMatch && timelineMatch[1]) {
+      console.log('📋 Attempting to parse:', timelineMatch[1]);
       try {
         timelineEvent = JSON.parse(timelineMatch[1]);
-        timelineEvent.id = timelineEvent.id || uuidv4();
-        cleanedResponse = aiMessage.replace(/TIMELINE_EVENT:\s*\{[\s\S]*?\}/, '').trim();
+        timelineEvent.id = uuidv4();
+        
+        // Always use current date/time
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        timelineEvent.date = `${year}-${month}-${day} ${hours}:${minutes}`;
+        
+        // Ensure required fields exist
+        if (!timelineEvent.title || !timelineEvent.description) {
+          console.error('❌ Missing required fields (title or description)');
+          timelineEvent = null;
+        } else {
+          // Set defaults for optional fields
+          timelineEvent.tags = timelineEvent.tags || [];
+          timelineEvent.severity = timelineEvent.severity || 'medium';
+          
+          cleanedResponse = aiMessage.replace(/TIMELINE_EVENT:\s*\{[\s\S]*?\}/i, '').trim();
+          console.log('✅ Timeline event created:', JSON.stringify(timelineEvent, null, 2));
+        }
       } catch (e) {
-        console.error('Failed to parse timeline event:', e);
+        console.error('❌ Failed to parse timeline event:', e.message);
+        console.error('Raw match:', timelineMatch[1]);
+        timelineEvent = null;
       }
+    } else {
+      console.log('⚠️  No TIMELINE_EVENT found in response');
     }
+    
+    console.log('═'.repeat(80));
 
     history.push({ role: 'assistant', content: cleanedResponse });
 
