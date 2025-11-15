@@ -1,93 +1,79 @@
 .timeline-page {
+  width: 100%;
   min-height: 100vh;
-  background: #fafafa;
-  padding: 40px 60px;
-  padding-left: 280px; /* Account for sidebar */
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 40px;
+  box-sizing: border-box;
 }
 
 .timeline-page-header {
-  margin-bottom: 48px;
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeInDown 0.6s ease-out;
 }
 
 .timeline-page-title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 8px 0;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  margin-bottom: 8px;
   letter-spacing: -0.5px;
 }
 
 .timeline-page-subtitle {
   font-size: 1rem;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0;
   font-weight: 400;
 }
 
 .timeline-container {
-  position: relative;
-  padding-left: 40px;
-}
-
-.timeline-line {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: repeating-linear-gradient(
-    to bottom,
-    #d1d5db 0px,
-    #d1d5db 8px,
-    transparent 8px,
-    transparent 16px
-  );
-  margin-left: 8px;
-}
-
-.timeline-events {
+  max-width: 800px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-}
-
-.timeline-event-wrapper {
-  position: relative;
+  gap: 20px;
+  animation: fadeInUp 0.6s ease-out;
 }
 
 .timeline-card {
-  background: #ffffff;
-  border-radius: 12px;
-  border-left: 4px solid var(--border-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--border-color, #667eea);
+  transition: all 0.3s ease;
+  animation: slideIn 0.4s ease-out;
 }
 
 .timeline-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .timeline-card-content {
-  padding: 24px;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .timeline-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  gap: 16px;
 }
 
 .timeline-card-title {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
   flex: 1;
 }
@@ -98,142 +84,242 @@
 }
 
 .timeline-card-btn {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #f3f4f6;
-  color: #374151;
 }
 
-.timeline-card-btn:hover {
-  background: #e5e7eb;
+.timeline-card-btn-edit {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
+
+.timeline-card-btn-edit:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-1px);
 }
 
 .timeline-card-btn-save {
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .timeline-card-btn-save:hover {
-  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .timeline-card-btn-cancel {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .timeline-card-btn-cancel:hover {
-  background: #e5e7eb;
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
 }
 
 .timeline-card-date {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 12px;
-  font-weight: 400;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-card-date::before {
+  content: '📅';
+  font-size: 0.85rem;
 }
 
 .timeline-card-description {
-  font-size: 0.9375rem;
-  color: #374151;
+  font-size: 0.95rem;
+  color: #475569;
   line-height: 1.6;
-  margin: 0 0 16px 0;
+  margin: 0;
 }
 
 .timeline-card-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
 .timeline-card-tag {
-  display: inline-block;
   padding: 4px 12px;
-  background: #f3f4f6;
-  color: #374151;
-  border-radius: 16px;
-  font-size: 0.8125rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: #667eea;
+  border-radius: 12px;
+  font-size: 0.85rem;
   font-weight: 500;
+  border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
 .timeline-card-severity {
-  position: absolute;
-  top: 24px;
-  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .timeline-card-severity-badge {
-  display: inline-block;
   padding: 4px 12px;
-  background: #f3f4f6;
-  color: #374151;
-  border-radius: 16px;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-card-severity-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .timeline-card-edit-input,
 .timeline-card-edit-textarea,
 .timeline-card-edit-select {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.9375rem;
+  padding: 10px 14px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-family: inherit;
-  color: #374151;
-  background: #ffffff;
-  margin-bottom: 8px;
+  color: #1e293b;
+  background: white;
+  transition: all 0.2s ease;
 }
 
 .timeline-card-edit-input:focus,
 .timeline-card-edit-textarea:focus,
 .timeline-card-edit-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .timeline-card-edit-textarea {
   resize: vertical;
   min-height: 80px;
+  line-height: 1.6;
 }
 
-.timeline-card-edit-select {
-  width: auto;
-  min-width: 100px;
+.timeline-empty {
+  max-width: 500px;
+  margin: 100px auto;
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.6s ease-out;
 }
 
-@media (max-width: 1024px) {
-  .timeline-page {
-    padding-left: 240px;
-    padding-right: 40px;
+.timeline-empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667eea;
+}
+
+.timeline-empty-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 12px 0;
+}
+
+.timeline-empty-text {
+  font-size: 1rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 @media (max-width: 768px) {
   .timeline-page {
     padding: 20px;
-    padding-top: 100px; /* Account for bottom sidebar */
   }
 
   .timeline-page-title {
     font-size: 2rem;
   }
 
-  .timeline-container {
-    padding-left: 30px;
-  }
-
-  .timeline-card-content {
+  .timeline-card {
     padding: 20px;
   }
-}
 
+  .timeline-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .timeline-card-title {
+    font-size: 1.1rem;
+  }
+
+  .timeline-empty {
+    padding: 30px 20px;
+    margin: 50px auto;
+  }
+}
